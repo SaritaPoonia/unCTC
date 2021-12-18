@@ -1,0 +1,454 @@
+library(devtools)
+install_github("SaritaPoonia/unCTC")
+library(unCTC)
+library(unCTC)
+Poonia_et_al._TPMData = unCTC::Poonia_et_al._TPMData
+Ding_et_al._WBC1_TPMData = unCTC::Ding_et_al._WBC1_TPMData
+Poonia_et_al._metaData = unCTC::Poonia_et_al._metaData
+Ding_et_al._WBC1_metaData = unCTC::Ding_et_al._WBC1_metaData
+load("/home/saritap/Ebright_et_al._TPMData.RData")
+Ebright_et_al._TPMData = Ebright_et_al._TPMData
+load("/home/saritap/Ebright_et_al._metaData.RData")
+Ebright_et_al._metaData = Ebright_et_al._metaData
+load("/home/saritap/Ding_et_al._WBC2_TPMData.RData")
+Ding_et_al._WBC2_TPMData = Ding_et_al._WBC2_TPMData
+load("/home/saritap/Ding_et_al._WBC2_metaData.RData")
+Ding_et_al._WBC2_metaData = Ding_et_al._WBC2_metaData
+#Create Expression data list
+dataList = list(Poonia_et_al._TPMData,Ebright_et_al._TPMData,
+Ding_et_al._WBC1_TPMData,Ding_et_al._WBC2_TPMData)
+#Create Data Id's list
+dataId = list("Poonia_et_al._TPMData","Ebright_et_al._TPMData",
+"Ding_et_al._WBC1_TPMData","Ding_et_al._WBC2_TPMData")
+#Create Meta data list
+MetaData = list(Poonia_et_al._metaData, Ebright_et_al._metaData,
+Ding_et_al._WBC1_metaData, Ding_et_al._WBC2_metaData )
+#Genesets given with this package
+genesets = c2.all.v7.2.symbols
+#Call PathwayEnrichmentScore
+Pathway_score = unCTC::PathwayEnrichmentScore(data_list =dataList,
+data_id = dataId,
+Genesets = genesets,
+min.size=10,
+max.size = 500,
+min_Sample = 5,
+min_Gene = 1500,
+Parallel_threads=8L)
+DDLK_Clusters = unCTC::DDLK_Clust(PathwayScore = Pathway_score$Pathway_score,
+PathwayMetaData = Pathway_score$Pathway_metadata,
+n = 4,
+out.dir = getwd(),
+MetaData = MetaData
+)
+plots = unCTC::unCTC_plots(Pathway_score = DDLK_Clusters$Pathway_score,
+Pathway_metadata = DDLK_Clusters$PathwayDDLK_clust,
+colorby = "Data_id",
+Color_cluster = "Clusters",
+pairsplotLegend = "none")
+plots$group_by_Class
+pad(gp.class.pdf) plots$group_by_Class dev.off()
+pd(fgp.class.pdf) plots$group_by_Class dev.off()
+pdf(gp.class.pdf) plots$group_by_Class dev.off()
+pdf(gp.class.pdf)
+plots$group_by_Class
+dev.off()
+getwd()
+setwd("/home/saritap/")
+pdf(gp.class.pdf)
+plots$group_by_Class
+dev.off()
+pdf("gp.clust.pdf")
+plots$group_by_Cluster
+dev.off()
+library(ggplot2)
+pdf("barplot.pdf")
+ggplot(DDLK_Clusters$PathwayDDLK_clust, aes(x=Clusters, fill = Cell_type))+
+theme_classic()+
+geom_bar(stat="count")+
+scale_color_manual()+
+scale_fill_manual(
+values = c("deepskyblue3","darkred",
+"darkgreen","dark turquoise"))
+dev.off()
+Diff_matrix = unCTC::Differential_genes(data_list=dataList,
+min_Sample = 5,
+min_Gene = 1500,
+DDLK_Clusters,
+Genesets = genesets,
+data_id=dataId,
+data_type = "Normalised",
+DifferentiateBy = "Clusters")
+library(pheatmap)
+library(viridis)
+annotation = Diff_matrix$annotations
+annotation$Data_id <- NULL
+annotation$GroupID <- NULL
+annotation$Cell_type <- NULL
+ann = annotation[,c("HormoneStatus","Class","Clusters")]
+pdf("heat.pdf")
+pheatmap(t(scale(t(Diff_matrix$DiffMat100gene))),cluster_cols = FALSE,
+show_colnames = FALSE,cluster_rows = FALSE, show_rownames = FALSE,
+color = viridis(1000),annotation = ann)
+dev.off()
+Breast_elevated_genes = unCTC::Breast_elevated_genes
+Immune_signature_genes = unCTC::Blood_specific_gene
+#Calculate Stouffer's score for Blood gene
+S_WBC = unCTC::Stouffer_score(data_list = dataList,
+min_Sample = 5,
+min_Gene = 1500,
+gene_list =Immune_signature_genes,
+data_id = dataId,
+Groupby = "Clusters",
+DDLKCluster_data = DDLK_Clusters)
+#Calculate Stouffer's score for Breast elevated genes
+S_Breast = unCTC::Stouffer_score(data_list = dataList,
+min_Sample = 5,
+min_Gene = 1500,
+gene_list = Breast_elevated_genes,
+data_id = dataId,
+Groupby = "Clusters",
+DDLKCluster_data = DDLK_Clusters)
+library(ggplot2)
+library(ggpubr)
+ColorKey = c("darkred","deepskyblue3","darkolivegreen4",
+"dark turquoise","pale violet red",
+"steelblue","forestgreen","gray2",
+"gray50","hotpink","lightslateblue",
+"tan4","yellow3","sienna4","orchid4")
+pdf("Immune_s.pdf")
+ggplot(S_WBC$Stouffer_score,aes(x=Clusters,y= Stouffer_score,fill=Clusters))+
+geom_boxplot(outlier.shape = NA) + theme_classic() +
+scale_fill_manual(values = ColorKey) +
+ggtitle("Immune gene signature")+
+stat_compare_means(comparisons = S_WBC$comparisons,
+label = "p.signif", method = "t.test",ref.group = ".all.")
+dev.off()
+pdf("breast_s.pdf")
+ggplot(S_Breast$Stouffer_score,aes(x=Clusters,y= Stouffer_score,fill=Clusters))+
+geom_boxplot(outlier.shape = NA) + theme_classic() +
+scale_fill_manual(values = ColorKey)+
+ggtitle("Breast elevated gene signature")+
+stat_compare_means(comparisons = S_Breast$comparisons,
+label = "p.signif", method = "t.test",ref.group = ".all.")
+dev.off()
+gencode_v19_gene_pos =unCTC::gencode_v19_gene_pos
+CNV_Alterations = unCTC::CNV_alterations(
+data_list= dataList,
+data_id= dataId,
+min_Sample = 5,
+min_Gene = 1500,
+path= getwd(),
+GenePositionFile= gencode_v19_gene_pos,
+threads_no=8,
+MetaData = list(DDLK_Clusters$PathwayDDLK_clust),
+Groupby = "Clusters",
+Reference_name = "Cluster_1",
+obs.title ="Observations",
+ref.title = "References",
+out.Filename = "inferCNV_Cluster"
+)
+devtools::document()
+warnings()
+?intersect
+?head
+?stack
+?dplyr::intersect()
+?dplyr::`%>%`()
+?S4Vectors::as.data.frame()
+?as.data.frame()
+?head
+?as.matrix
+?rBind()
+?rbind()
+?findOverlaps()
+?ranges
+?ranges()
+?Granges()
+?with()
+?write.csv()
+?as.matrix()
+?apply()
+?intersect()
+stringr::`%>%`()
+?%>%
+?%>%()
+?`%>%`()
+?`%>%`()
+data.table::
+S
+?rbind
+?geom_jitter
+?ggviolin
+?DGEList
+?DGEList()
+DGEList
+?DGEList
+??DGEList()
+?model.matrix
+?voom
+?makeContrasts
+?eBayes
+?topTable
+qusage::read.gmt()
+source('~/unCTC/R/Gene_Violin_plots.R')
+devtools::document()
+rm(list = c("Gene_Violin_plots"))
+devtools::document()
+?head
+devtools::document()
+devtools::build_readme()
+BiocCheck::BiocCheck()
+devtools::document()
+BiocCheck::BiocCheck()
+library(unCTC)
+devtools::document()
+head(unCTC::Poonia_et_al._metaData)
+devtools::build_readme()
+devtools::document()
+devtools::load_all(".")
+devtools::document()
+devtools::build_vignettes()
+devtools::document()
+library(unCTC)
+devtools::document()
+devtools::document()
+devtools::document()
+devtools::document()
+devtools::document()
+devtools::document()
+devtools::build_vignettes()
+library(unCTC)
+devtools::document()
+devtools::document()
+library(unCTC)
+devtools::document()
+devtools::document()
+devtools::document()
+devtools::document()
+devtools::document()
+?devtools::check()
+library(unCTC)
+Pathway_score = readRDS("/home/saritap/unCTC_output_scores/Pathway_score.rds")
+DDLK_Clusters = unCTC::DDLK_Clust(PathwayScore = Pathway_score$Pathway_score,
+PathwayMetaData = Pathway_score$Pathway_metadata,
+n = 4,
+out.dir = getwd(),
+MetaData = MetaData
+)
+plots = unCTC::unCTC_plots(Pathway_score = DDLK_Clusters$Pathway_score,
+Pathway_metadata = DDLK_Clusters$PathwayDDLK_clust,
+colorby = "Data_id",
+Color_cluster = "Clusters",
+pairsplotLegend = "none")
+pdf("2.pdf")
+plots$group_by_Class
+dev.off()
+pdf("2.pdf")
+plots$group_by_Class
+dev.off()
+getwd
+getwd()
+pdf("2.pdf")
+plots$group_by_Cluster
+dev.off()
+Diff_matrix = unCTC::Differential_genes(data_list=dataList,
+min_Sample = 5,
+min_Gene = 1500,
+DDLK_Clusters,
+Genesets = genesets,
+data_id=dataId,
+data_type = "Normalised",
+DifferentiateBy = "Clusters",up_gene_number = 100)
+dim(Diff_matrix$DiffMat)
+library(pheatmap)
+library(viridis)
+annotation = Diff_matrix$annotations
+annotation$Data_id <- NULL
+annotation$GroupID <- NULL
+annotation$Cell_type <- NULL
+ann = annotation[,c("HormoneStatus","Class","Clusters")]
+pheatmap(t(scale(t(Diff_matrix$DiffMat))),cluster_cols = FALSE,
+show_colnames = FALSE,cluster_rows = FALSE, show_rownames = FALSE,
+color = viridis(1000),annotation = ann)
+Diff_matrix$Diffup_genes
+Diff_matrix = unCTC::Differential_genes(data_list=dataList,
+min_Sample = 5,
+min_Gene = 1500,
+DDLK_Clusters,
+Genesets = genesets,
+data_id=dataId,
+data_type = "Normalised",
+DifferentiateBy = "Clusters",up_gene_number = 5)
+library(pheatmap)
+library(viridis)
+annotation = Diff_matrix$annotations
+annotation$Data_id <- NULL
+annotation$GroupID <- NULL
+annotation$Cell_type <- NULL
+ann = annotation[,c("HormoneStatus","Class","Clusters")]
+pheatmap(t(scale(t(Diff_matrix$DiffMat))),cluster_cols = FALSE,
+show_colnames = FALSE,cluster_rows = FALSE, show_rownames = TRUE,
+color = viridis(1000),annotation = ann)
+Diff_path = Differential_pathways(Pathway_score,
+DDLK_Clusters = DDLK_Clusters,
+DifferentiateBy = "Clusters",
+up_pathways_number = 100
+)
+Diff_path = unCTC::Differential_pathways(Pathway_score,
+DDLK_Clusters = DDLK_Clusters,
+DifferentiateBy = "Clusters",
+up_pathways_number = 100
+)
+Diff_path$Diffup_pathways
+Diff_path$Diffup_pathways[[1]]
+Diff_path$Diffup_pathways[[2]]
+Diff_path$Diffup_pathways[[3]]
+Diff_path$Diffup_pathways[[4]]
+Diff_path = unCTC::Differential_pathways(Pathway_score,
+DDLK_Clusters = DDLK_Clusters,
+DifferentiateBy = "Clusters",
+up_pathways_number = 10
+)
+annotation = Diff_path$annotations
+annotation$Data_id <- NULL
+annotation$GroupID <- NULL
+annotation$Cell_type <- NULL
+ann = annotation[,c("HormoneStatus","Class","Clusters")]
+pheatmap(t(scale(t(Diff_path$DiffMatpathway))),cluster_cols = FALSE,
+show_colnames = FALSE,cluster_rows = FALSE, show_rownames = TRUE,
+color = viridis(1000),annotation = ann)
+?Differential_genes
+?unCTC::Differential_pathways
+devtools::build_readme()
+devtools::build_vignettes()
+library(unCTC)
+?stat_compare_means
+?stat_compare_means()
+devtools::document()
+library(unCTC)
+library(unCTC)
+library(unCTC)
+devtools::document()
+library(unCTC)
+devtools::document()
+devtools::load_all(".")
+library(unCTC)
+devtools::document()
+devtools::load_all(".")
+library(unCTC)
+BiocCheck::BiocCheck()
+unCTC::Poonia_et_al._TPMData
+devtools::document()
+devtools::document()
+library(unCTC)
+library(unCTC)
+library(unCTC)
+library(unCTC)
+library(pheatmap)
+library(viridis)
+library(ggplot2)
+devtools::document()
+library(unCTC)
+library(unCTC)
+library(unCTC)
+library(pheatmap)
+library(viridis)
+library(ggplot2)
+Poonia_et_al._TPMData = unCTC::Poonia_et_al._TPMData
+Ding_et_al._WBC1_TPMData = unCTC::Ding_et_al._WBC1_TPMData
+Poonia_et_al._metaData = unCTC::Poonia_et_al._metaData
+Ding_et_al._WBC1_metaData = unCTC::Ding_et_al._WBC1_metaData
+load("/home/saritap/unCTC_datasets/Ebright_et_al._TPMData.RData")
+Ebright_et_al._TPMData = Ebright_et_al._TPMData
+load("/home/saritap/unCTC_datasets/Ding_et_al._WBC2_TPMData.RData")
+Ding_et_al._WBC2_TPMData = Ding_et_al._WBC2_TPMData
+load("/home/saritap/unCTC_datasets/Ebright_et_al._metaData.RData")
+Ebright_et_al._metaData = Ebright_et_al._metaData
+load("/home/saritap/unCTC_datasets/Ding_et_al._WBC2_metaData.RData")
+Ding_et_al._WBC2_metaData = Ding_et_al._WBC2_metaData
+c2.all.v7.2.symbols = unCTC::c2.all.v7.2.symbols
+genesets = c2.all.v7.2.symbols
+Pathway_score = unCTC::PathwayEnrichmentScore(data_list =dataList,
+data_id = dataId,
+Genesets = genesets,
+min.size=10,
+max.size = 500,
+min_Sample = 5,
+min_Gene = 1500,
+Parallel_threads=8L)
+dataList = list(Poonia_et_al._TPMData,Ebright_et_al._TPMData,
+Ding_et_al._WBC1_TPMData,Ding_et_al._WBC2_TPMData)
+c2.all.v7.2.symbols = unCTC::c2.all.v7.2.symbols
+```
+```{r eval=FALSE, include=TRUE}
+#Create Expression data list
+dataList = list(Poonia_et_al._TPMData,Ebright_et_al._TPMData,
+Ding_et_al._WBC1_TPMData,Ding_et_al._WBC2_TPMData)
+#Create Data Id's list
+dataId = list("Poonia_et_al._TPMData","Ebright_et_al._TPMData",
+"Ding_et_al._WBC1_TPMData","Ding_et_al._WBC2_TPMData")
+#Create Meta data list
+MetaData = list(Poonia_et_al._metaData, Ebright_et_al._metaData,
+Ding_et_al._WBC1_metaData, Ding_et_al._WBC2_metaData )
+c2.all.v7.2.symbols = unCTC::c2.all.v7.2.symbols
+dataList = list(Poonia_et_al._TPMData,Ebright_et_al._TPMData,
+Ding_et_al._WBC1_TPMData,Ding_et_al._WBC2_TPMData)
+#Create Data Id's list
+dataId = list("Poonia_et_al._TPMData","Ebright_et_al._TPMData",
+"Ding_et_al._WBC1_TPMData","Ding_et_al._WBC2_TPMData")
+#Create Meta data list
+MetaData = list(Poonia_et_al._metaData, Ebright_et_al._metaData,
+Ding_et_al._WBC1_metaData, Ding_et_al._WBC2_metaData )
+genesets = c2.all.v7.2.symbols
+Pathway_score = unCTC::PathwayEnrichmentScore(data_list =dataList,
+data_id = dataId,
+Genesets = genesets,
+min.size=10,
+max.size = 500,
+min_Sample = 5,
+min_Gene = 1500,
+Parallel_threads=8L)
+Sys.setenv(RETICULATE_PYTHON = "/path/to/python3")
+library(reticulate)
+#Retrive information about the version of python being used by reticulate
+reticulate::py_config()
+library(reticulate)
+#Retrive information about the version of python being used by reticulate
+reticulate::py_config()
+Sys.setenv(RETICULATE_PYTHON = "/usr/bin/python3")
+library(reticulate)
+#Retrive information about the version of python being used by reticulate
+reticulate::py_config()
+DDLK_Clusters = unCTC::DDLK_Clust(PathwayScore = Pathway_score$Pathway_score,
+PathwayMetaData = Pathway_score$Pathway_metadata,
+n = 4,
+out.dir = getwd(),
+MetaData = MetaData
+)
+plots = unCTC::unCTC_plots(Pathway_score = DDLK_Clusters$Pathway_score,
+Pathway_metadata = DDLK_Clusters$PathwayDDLK_clust,
+colorby = "Data_id",
+Color_cluster = "Clusters",
+pairsplotLegend = "none")
+plots$group_by_Class
+plots$group_by_Class
+plots$group_by_Cluster
+knitr::include_graphics("man/figures/Group-by-Cluster-1.png")
+devtools::document()
+devtools::load_all(".")
+library(unCTC)
+library(unCTC)
+library(unCTC)
+devtools::document()
+library(unCTC)
+?geom_jitter
+devtools::document()
+?list
+devtools::document()
+devtools::document()
+dim(unCTC::Poonia_et_al._TPMData)
+72-11
+devtools::document()
+devtools::document()
+library(unCTC)
+library(unCTC)

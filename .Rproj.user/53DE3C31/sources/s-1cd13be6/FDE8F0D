@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1627296244737.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "FDE8F0D",
+    "lastKnownWriteTime" : 1634233103,
+    "last_content_update" : 1634233103910,
+    "path" : "~/unCTC/R/GroupsDiffPathways.R",
+    "project_path" : "R/GroupsDiffPathways.R",
+    "properties" : {
+        "cursorPosition" : "38,47",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 11,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

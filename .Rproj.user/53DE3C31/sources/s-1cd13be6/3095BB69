@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1632333622995.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "574349120",
+    "id" : "3095BB69",
+    "lastKnownWriteTime" : 1627852458,
+    "last_content_update" : 1627852458,
+    "path" : "~/unCTC/doc/vignette.R",
+    "project_path" : "doc/vignette.R",
+    "properties" : {
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 19,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

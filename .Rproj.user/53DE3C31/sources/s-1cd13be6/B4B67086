@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1627317552823.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "B4B67086",
+    "lastKnownWriteTime" : 1639827952,
+    "last_content_update" : 1639827952,
+    "path" : "~/unCTC/README.md",
+    "project_path" : "README.md",
+    "properties" : {
+        "cursorPosition" : "218,8",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 14,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "markdown"
+}

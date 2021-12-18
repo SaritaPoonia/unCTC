@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1627296241929.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "D71D668A",
+    "lastKnownWriteTime" : 1633264349,
+    "last_content_update" : 1633264349281,
+    "path" : "~/unCTC/R/Gene_Violin_plots.R",
+    "project_path" : "R/Gene_Violin_plots.R",
+    "properties" : {
+        "cursorPosition" : "25,64",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

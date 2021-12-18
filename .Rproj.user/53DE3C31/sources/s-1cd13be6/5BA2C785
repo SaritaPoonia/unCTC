@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1627321511413.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "5BA2C785",
+    "lastKnownWriteTime" : 1626781805,
+    "last_content_update" : 1626781805,
+    "path" : "~/unCTC/vignettes/vignette.Rmd",
+    "project_path" : "vignettes/vignette.Rmd",
+    "properties" : {
+        "cursorPosition" : "17,13",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 17,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

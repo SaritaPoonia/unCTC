@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1627318556491.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "6F872B39",
+    "lastKnownWriteTime" : 1626780734,
+    "last_content_update" : 1626780734,
+    "path" : "~/unCTC/tests/testthat/test-CNV_alterations.R",
+    "project_path" : "tests/testthat/test-CNV_alterations.R",
+    "properties" : {
+        "cursorPosition" : "3,0",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 16,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

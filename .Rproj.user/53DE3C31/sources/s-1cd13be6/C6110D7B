@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1627296239525.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "C6110D7B",
+    "lastKnownWriteTime" : 1627315732,
+    "last_content_update" : 1627315732570,
+    "path" : "~/unCTC/R/CreateSingleCellObject.R",
+    "project_path" : "R/CreateSingleCellObject.R",
+    "properties" : {
+        "cursorPosition" : "212,34",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

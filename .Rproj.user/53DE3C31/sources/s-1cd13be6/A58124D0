@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1627296242920.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "A58124D0",
+    "lastKnownWriteTime" : 1626682537,
+    "last_content_update" : 1626682537,
+    "path" : "~/unCTC/R/globals.R",
+    "project_path" : "R/globals.R",
+    "properties" : {
+        "cursorPosition" : "0,31",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 9,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

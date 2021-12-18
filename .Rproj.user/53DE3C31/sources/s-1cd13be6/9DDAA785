@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1627296240714.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "9DDAA785",
+    "lastKnownWriteTime" : 1627317876,
+    "last_content_update" : 1627317876479,
+    "path" : "~/unCTC/R/DDLK_Clust.R",
+    "project_path" : "R/DDLK_Clust.R",
+    "properties" : {
+        "cursorPosition" : "70,42",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

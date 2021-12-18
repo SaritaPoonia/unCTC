@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1627296243829.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "73B340A5",
+    "lastKnownWriteTime" : 1638290135,
+    "last_content_update" : 1638290135531,
+    "path" : "~/unCTC/R/GroupsDiffGenes.R",
+    "project_path" : "R/GroupsDiffGenes.R",
+    "properties" : {
+        "cursorPosition" : "124,50",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 10,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

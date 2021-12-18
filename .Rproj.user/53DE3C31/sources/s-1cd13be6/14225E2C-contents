@@ -1,0 +1,668 @@
+---
+output: github_document
+---
+
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/",
+  out.width = "100%"
+)
+```
+
+# unCTC: Characterising single circulating tumor cell transcriptomes 
+
+## Introduction
+
+To identify Circulating Tumor Cells (CTCs) from White Blood Cells, unCTC uses pathway-based unsupervised clustering of single-cell RNA-Seq data (WBCs). It accepts a list of raw Countdata/TPM expression single-cell RNA-Seq matrices. In the expression matrix, genes must be arranged in rows and must put cells in columns. unCTC combines all matrices based on commongenes, filters out low-expression genes and cells, removes the batch effect, and normalizes the integrated matrix. For unsupervised clustering of Circulating Tumor Cells (CTCs) and White Blood Cells (WBCs), a normalized matrix is transformed to pathway space, and deep dictionary learning utilizing k means clustering is implemented. unCTC also calculates Copy Amount Variations (CNVs) in chromosomes across clusters, revealing the number of CNVs and the p/q arm variation location. With the use of Stouffer's Z-score, unCTC allows for the determination of various canonical markers identifying malignant/epithelial/immune origins (Stouffer et al., 1949). The expression of other canonical markers confirms the lineage of Circulating Tumour Cells (CTCs).
+
+
+## Installation
+
+You can install the released version of unCTC from ....  
+
+```{r Load-unCTC-library, eval=FALSE, include=TRUE}
+
+#First, you need to install the devtools package. 
+install.packages("devtools")
+
+#Load the devtools package.
+library(devtools)
+
+#Install the unCTC package
+install_github("SaritaPoonia/unCTC")
+
+#Load unCTC
+library(unCTC)
+```
+
+## Software Requirements
+* R (tested in R version 4.0.3 (2020-10-10))  
+* R libraries required include : PCAtools, viridis, magrittr, stringr, limma,
+    rworldmap, data.table, GSVA, pheatmap, qusage, umap, ggplot2,
+    SingleCellExperiment, Linnorm, readxl, readtext, infercnv, ggpubr,
+    reticulate, GenomicRanges, readtext, S4Vectors, cowplot, edgeR, D3GB, 
+    dplyr, SummarizedExperiment, IRanges, Matrix, utils,
+    stats
+* Python 3 with installed modules: h5py, scipy, pandas, numpy, sklearn,
+  matplotlib.pyplot, scipy.io
+
+```{r echo=TRUE}
+library(unCTC)
+library(pheatmap)
+library(viridis)
+library(ggplot2)
+
+```
+
+## Data Requirements
+unCTC requires:  
+* List of expression data matrices.  
+* List of expression data matrices name in the same order.  
+* Gene list: List of specific genes  
+* Genesets: list of pathways
+* A gene/chromosome positions file  
+
+
+## Usage and workflow
+Two data matrices Poonia_et_al._TPMData and 
+Ding_et_al._WBC1_TPMData, and their meta data 
+are given with this package. 
+
+### Load Data and meta data from package
+
+```{r data, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
+Poonia_et_al._TPMData = unCTC::Poonia_et_al._TPMData
+Ding_et_al._WBC1_TPMData = unCTC::Ding_et_al._WBC1_TPMData
+Poonia_et_al._metaData = unCTC::Poonia_et_al._metaData
+Ding_et_al._WBC1_metaData = unCTC::Ding_et_al._WBC1_metaData
+
+```
+
+Here we are using two other dataset 
+Ding_et_al._WBC2_TPMData and Ebright_et_al._TPMData.
+
+* Download all datasets from below link:   
+https://drive.google.com/file/d/1GGnDZFw40ULjQ7_RGQGW1m-hEkcGKcBD/view?usp=sharing  
+* download unCTC_data.zip folder.
+* Unzip unCTC_data.zip..
+* It contains all the data used in the creating and validating unCTC package.
+* Here we are using 4 expression data and 4 corresponding meta data files. 
+  Out of which Poonia_et_al._TPMData, Poonia_et_al._metaData, 
+  Ding_et_al._WBC1_TPMData and Ding_et_al._WBC1_metaData are
+  given with the package. So we can direct load from unCTC package.
+* Load Ding_et_al._WBC2_TPMData, Ding_et_al._WBC2_metaData, 
+  Ebright_et_al._TPMData and Ebright_et_al._metaData
+  from downloaded folder.
+
+```{r eval=FALSE, include=TRUE}
+load("/path/of/downloaded/folder/Ebright_et_al._TPMData.RData")
+Ebright_et_al._TPMData = Ebright_et_al._TPMData
+
+load("/path/of/downloaded/folder/Ding_et_al._WBC2_TPMData.RData")
+Ding_et_al._WBC2_TPMData = Ding_et_al._WBC2_TPMData
+
+load("/path/of/downloaded/folder/Ebright_et_al._metaData.RData")
+Ebright_et_al._metaData = Ebright_et_al._metaData
+
+load("/path/of/downloaded/folder/Ding_et_al._WBC2_metaData.RData")
+Ding_et_al._WBC2_metaData = Ding_et_al._WBC2_metaData
+```
+```{r echo=TRUE}
+load("/home/saritap/unCTC_datasets/Ebright_et_al._TPMData.RData")
+Ebright_et_al._TPMData = Ebright_et_al._TPMData
+
+load("/home/saritap/unCTC_datasets/Ding_et_al._WBC2_TPMData.RData")
+Ding_et_al._WBC2_TPMData = Ding_et_al._WBC2_TPMData
+
+load("/home/saritap/unCTC_datasets/Ebright_et_al._metaData.RData")
+Ebright_et_al._metaData = Ebright_et_al._metaData
+
+load("/home/saritap/unCTC_datasets/Ding_et_al._WBC2_metaData.RData")
+Ding_et_al._WBC2_metaData = Ding_et_al._WBC2_metaData
+```
+
+### Load geneset
+This package includes one geneset, which is taken from
+molecular signature database.  
+
+```{r load-geneset, echo=TRUE}
+c2.all.v7.2.symbols = unCTC::c2.all.v7.2.symbols
+```
+```{r echo=TRUE}
+#Create Expression data list
+dataList = list(Poonia_et_al._TPMData,Ebright_et_al._TPMData,
+                Ding_et_al._WBC1_TPMData,Ding_et_al._WBC2_TPMData)
+
+#Create Data Id's list
+dataId = list("Poonia_et_al._TPMData","Ebright_et_al._TPMData",
+              "Ding_et_al._WBC1_TPMData","Ding_et_al._WBC2_TPMData")
+
+#Create Meta data list
+MetaData = list(Poonia_et_al._metaData, Ebright_et_al._metaData, 
+                Ding_et_al._WBC1_metaData, Ding_et_al._WBC2_metaData )
+
+#Genesets given with this package
+genesets = c2.all.v7.2.symbols
+
+```
+
+## Calculate pathway enrichment score 
+PathwayEnrichmentScore uses the following steps:  
+
+ Integrate data passed in the list based on common genes.  
+ 
+* Filter out low expressed genes and cells.  
+* Use Linnorm.Norm() for normalization and batch effect correction.  
+* Create singleCellObject instance.  
+* Calculate pathway enrichment score.  
+* Calculate metadata.  
+* Return pathway enrichment score and pathway metadata.  
+
+PathwayEnrichmentScore requires following inputs:  
+* data_list: List of expression data matrices  
+* data_id: List of expression data matrices name in the same order.  
+* Genesets: List of pathways
+* min.size: Minimum size of genes in pathways/Genesets,Default is 10  
+* max.size: Maximum size of genes in pathways/Genesets,Default is 500  
+* min_Sample: filter out genes which are not expressedin at least 
+min_Sample cells, Default is 5.  
+* min_Gene: Filter out those cells which do not express at least 
+min_Gene genes, Default is 1500. 
+* Parallel_threads : Number of threads in parallel to execute process
+
+```{r Pathway-enrichment-score, echo=TRUE}
+#Call PathwayEnrichmentScore
+Pathway_score = unCTC::PathwayEnrichmentScore(data_list =dataList,
+                                        data_id = dataId,
+                                        Genesets = genesets,
+                                        min.size=10,
+                                        max.size = 500,
+                                        min_Sample = 5,
+                                        min_Gene = 1500,
+                                       Parallel_threads=8L)
+```
+
+### Calculate the optimal number of clusters for pathway enrichment score matrix
+For the above pathway enrichment score matrix, we calculate the number of
+clusters using the Elbow method.  
+
+```{r No-of-Clusters, echo=TRUE, message=FALSE}
+library(factoextra)
+library(NbClust)
+fviz_nbclust(Pathway_score$Pathway_score, kmeans, method = "wss") +
+    geom_vline(xintercept = 4, linetype = 2)+
+    labs(subtitle = "Elbow method")
+```
+```{r Optimal number of k clusters, eval=FALSE, fig.align='center', include=FALSE, out.width="80%"}
+ knitr::include_graphics("man/figures/K_clustNo.jpg")
+```
+
+## DDLK Clusteing  
+DDLk_Clust need the following inputs  
+
+* PathwayScore: Pathway enrichment score matrix. We get this from 
+    PathwayEnrichmentScore_output$Pathway_score  
+* PathwayMetaData: Pathways metadata. we get this from
+    PathwayEnrichmentScore_output$Pathway_metadata  
+* n: Number of clusters for K-means clustering. We can determine the
+    optimal number of clusters for pathway enrichment score matrix using
+    the Elbow method, Average silhouette method, Gap statistic method.  
+* out.dir: Directory to save enrichment score. This input is mandatory.
+    Default is your current directory.  
+* MetaData: list of metadata for all expression matrices. This input is
+    optional. Only give if you have the same columns in all 
+    metadata matrices.  
+
+```{r DDLK-Clustering, echo=TRUE}
+# DDLK_Clust use python environment so set python environment before running DDLK_Clust()
+# Set Python3 Path: Example: Sys.setenv(RETICULATE_PYTHON = "/usr/bin/python3")
+
+# DDLK_Clust use python environment so set python environment before running DDLK_Clust()
+# Set Python3 Path: Example: Sys.setenv(RETICULATE_PYTHON = "/usr/bin/python3")
+
+#Sys.setenv(RETICULATE_PYTHON = "/path/to/python3") 
+library(reticulate)
+
+#Retrive information about the version of python being used by reticulate
+reticulate::py_config()
+#If version is different from the the given path then restart session and
+#give path again can change path
+
+#Retrive information about the version of python being used by reticulate
+#reticulate::py_config()
+#If version is different from the the given path then restart session and
+#give path again can change path
+
+DDLK_Clusters = unCTC::DDLK_Clust(PathwayScore = Pathway_score$Pathway_score,
+                           PathwayMetaData = Pathway_score$Pathway_metadata,
+                           n = 4,
+                           out.dir = getwd(),
+                           MetaData = MetaData
+                           )
+
+
+```
+
+## unCTC plots:
+unCTC_plots Plots principal components of pathway enrichment score.  
+
+* Return list of three plots:group_by_Class,
+group_by_Cluster,p1_p5_Pairssplot
+
+Required input for unCTC_plots method is:  
+
+* PathwayScore: Pathway enrichment score matrix. We get this from
+    PathwayEnrichmentScore_output$Pathway_score.  
+* PathwayMetaData: Pathways metadata. we get this from
+    PathwayEnrichmentScore_output$Pathway_metadata.  
+* colorby: Any column name from PathwayMetaData,
+    default is "Data_id".  
+* Color_cluster: Any column name from PathwayMetaData,
+    default is "Clusters".  
+* pairsplotLegend: Legend Position in pairsplot.
+    Choose one from "left","right" and "none"  
+
+```{r unCTC-Plots, echo=TRUE, message=FALSE, warning=FALSE}
+plots = unCTC::unCTC_plots(Pathway_score = DDLK_Clusters$Pathway_score,
+                    Pathway_metadata = DDLK_Clusters$PathwayDDLK_clust,
+                    colorby = "Data_id",
+                    Color_cluster = "Clusters",
+                    pairsplotLegend = "none")
+
+```
+
+### Color by datasets id
+* Color by any column from metadata, default is "Data_id".  
+```{r Group-by-class, echo=TRUE}
+plots$group_by_Class
+```
+```{r Group-by-class_1, eval=FALSE, fig.align='center', include=FALSE, out.width="80%"}
+ knitr::include_graphics("man/figures/Group-by-class-1.png")
+```
+
+### Color by clusters
+```{r Group-by-Cluster, echo=TRUE}
+plots$group_by_Cluster
+```
+```{r Group-by-Cluster_1, eval=FALSE, fig.align='center', include=FALSE, out.width="80%"}
+ knitr::include_graphics("man/figures/Group-by-Cluster-1.png")
+```
+
+
+stacked  bar plot shows the count of CTCs (red) and WBCs (blue), while the x-axis shows clusters.
+```{r Counts-per-cluster, echo=TRUE}
+library(ggplot2)
+ggplot(DDLK_Clusters$PathwayDDLK_clust, aes(x=Clusters, fill = Cell_type))+
+       theme_classic()+
+       geom_bar(stat="count")+
+       scale_color_manual()+
+       scale_fill_manual(
+       values = c("deepskyblue3","darkred",
+               "darkgreen","dark turquoise"))
+```
+```{r Counts per cluster_1, eval=FALSE, fig.align='center', include=FALSE, out.width="80%"}
+ knitr::include_graphics("man/figures/Counts-per-cluster-1.png")
+```
+
+## Differential genes 
+Provide differential genes between given groups.  
+  
+Differential_genes require following inputs:  
+
+* data_list: List of expression data matrices  
+* min_Sample: filter out genes which are not expressedin at least 
+min_Sample cells, Default is 5  
+* min_Gene: Filter out those cells which do not express at least 
+min_Gene genes, Default is 1500.  
+* DDLK_Clusters: output of DDLK_Clust()  
+* data_id: List of expression data matrices name in same order.  
+* data_type: choose from given vector,c("Normalised","Raw").
+* DifferentiateBy: Default is Clusters. We can choose any column name
+from DDLK_Clusters$PathwayDDLK_clust  
+* p_val = Threshold p-value, Default is 0.05
+* lfc = Threshold log fold change value, Default is 0
+* up_gene_number = Select number of upregulated genes you want to obtain.
+Default is 10. If you get an error when computing the number of upregulated
+genes, relax the p val parameter.
+
+```{r Differential-gene-matrix, echo=TRUE}
+Diff_matrix = unCTC::Differential_genes(data_list=dataList,
+                                 min_Sample = 5,
+                                 min_Gene = 1500,
+                                 DDLK_Clusters,
+                                 Genesets = genesets,
+                                 data_id=dataId,
+                                 data_type = "Normalised",
+                                 DifferentiateBy = "Clusters",
+                                 up_gene_number = 100)
+```
+
+### Heatmap showing the top 100 upregulated genes in the 4 clusters.
+```{r Differential-gene-matrix-pheatmap, echo=TRUE}
+library(pheatmap)
+library(viridis)
+annotation = Diff_matrix$annotations
+annotation$Data_id <- NULL
+annotation$GroupID <- NULL
+annotation$Cell_type <- NULL
+ann = annotation[,c("HormoneStatus","Class","Clusters")] 
+
+pheatmap(t(scale(t(Diff_matrix$DiffMat))),cluster_cols = FALSE,
+         show_colnames = FALSE,cluster_rows = FALSE, show_rownames = FALSE,
+         color = viridis(1000),annotation = ann)
+```
+```{r Differential-gene-matrix-pheatmap_1, eval=FALSE, fig.align='center', include=FALSE, out.width="80%"}
+ knitr::include_graphics("man/figures/Differential-gene-matrix-pheatmap-1.png")
+```
+
+## Differential Pathways
+Provide differential pathways between given groups.  
+  
+Differential_pathways require following inputs:  
+
+* Pathway_score: Output of PathwayEnrichmentScore.R method  
+* DDLK_Clusters: output of DDLK_Clust.R method  
+* DifferentiateBy: Default is Clusters. We can choose any column name
+from DDLK_Clusters$PathwayDDLK_clust  
+* p_val = Threshold p-value, Default is 0.05
+* lfc = Threshold log fold change value, Default is 0
+* up_pathways_number = Select number of upregulated pathways you want to obtain.
+Default is 10. If you get an error when computing the number of upregulated
+pathways, relax the p val parameter.
+
+```{r echo=TRUE}
+Diff_path = unCTC::Differential_pathways(Pathway_score,
+                      DDLK_Clusters = DDLK_Clusters,
+                      DifferentiateBy = "Clusters",
+                      up_pathways_number = 10
+                      )
+```
+
+### Top 10 upregulated pathways in each cluster
+```{r Top10-Diff-Pathways, echo=TRUE, fig.height=6, fig.width=14}
+annotation = Diff_path$annotations
+annotation$Data_id <- NULL
+annotation$GroupID <- NULL
+annotation$Cell_type <- NULL
+ann = annotation[,c("HormoneStatus","Class","Clusters")] 
+
+pheatmap(t(scale(t(Diff_path$DiffMatpathway))),cluster_cols = FALSE,
+         show_colnames = FALSE,cluster_rows = FALSE, show_rownames = TRUE,
+         color = viridis(1000),annotation = ann)
+```
+```{r Top10-Diff-Pathways_1, eval=FALSE, fig.align='center', include=FALSE, out.width="100%"}
+ knitr::include_graphics("man/figures/Top10-Diff-Pathways-1.png")
+```
+
+## Calcuate Stouffers score
+Stouffer_score method uses the following steps:  
+
+* Calculate Z score of log normalized data  
+* Calculate Stouffer score for the specific gene list  
+* Assign Stouffer score to different groups of data and
+    results are shown in boxplot  
+
+The followings input are required to calculate Stouffer's score:  
+
+* data_list: List of expression data matrices.  
+* min_Sample: filter out genes which are not expressedin at least 
+min_Sample cells, Default is 5.  
+* min_Gene: Filter out those cells which do not express at least 
+min_Gene genes, Default is 1500. 
+* data_id: List of expression data matrices name in the same order.  
+* gene_list: Specific genes in vector.  
+* MetaData: Optional, List of metadata of expression matrices. If given,
+    then columns of all metadata in the list must be the same.  
+* metaColPos: default = 1,Only require if metadata is given. Position of
+    the column in metadata for which we want to calculate and compare Stouffer
+    score for given gene list.  
+* metaColName: default = "Class", Only require if metadata is given.  
+    Name of the column in metadata for which we want to calculate and compare
+    Stouffer score for given gene list.  
+    
+With this package, we have given two types of gene list:  
+
+### Load genelists
+```{r Load-genelists, echo=TRUE}
+Breast_elevated_genes = unCTC::Breast_elevated_genes
+Immune_signature_genes = unCTC::Blood_specific_gene
+
+```
+
+### Stouffer's Score:
+```{r Calculate-Stouffer-score, echo=TRUE}
+#Calculate Stouffer's score for Blood gene
+S_WBC = unCTC::Stouffer_score(data_list = dataList,
+                         min_Sample = 5,
+                         min_Gene = 1500,
+                         gene_list =Immune_signature_genes,
+                         data_id = dataId,
+                         Groupby = "Clusters",
+                         DDLKCluster_data = DDLK_Clusters)
+
+
+#Calculate Stouffer's score for Breast elevated genes
+S_Breast = unCTC::Stouffer_score(data_list = dataList,
+                           min_Sample = 5,
+                           min_Gene = 1500,
+                           gene_list = Breast_elevated_genes,
+                           data_id = dataId,
+                           Groupby = "Clusters",
+                           DDLKCluster_data = DDLK_Clusters)
+```
+
+## Stouffer's Score Plot
+For better colour visualization we are using following color key:
+```{r Colorkey, echo=TRUE}
+library(ggplot2)
+library(ggpubr)
+ColorKey = c("darkred","deepskyblue3","darkolivegreen4",
+             "dark turquoise","pale violet red",
+             "steelblue","forestgreen","gray2",
+             "gray50","hotpink","lightslateblue",
+             "tan4","yellow3","sienna4","orchid4")
+```
+
+### For Immune genes:
+```{r Immune-genes-Stouffer, echo=TRUE}
+ggplot(S_WBC$Stouffer_score,aes(x=Clusters,y= Stouffer_score,fill=Clusters))+
+geom_boxplot(outlier.shape = NA) + theme_classic() +
+scale_fill_manual(values = ColorKey) +
+ggtitle("Immune gene signature")+
+stat_compare_means(comparisons = S_WBC$comparisons,
+label = "p.signif", method = "t.test",ref.group = ".all.")
+```
+```{r Immune-genes-Stouffer_1, eval=FALSE, fig.align='center', include=FALSE, out.width="80%"}
+ knitr::include_graphics("man/figures/Immune-genes-Stouffer-1.png")
+```
+
+
+### For Breast elevated genes:
+```{r Breast-genes-Stouffer, echo=TRUE}
+ggplot(S_Breast$Stouffer_score,aes(x=Clusters,y= Stouffer_score,fill=Clusters))+
+geom_boxplot(outlier.shape = NA) + theme_classic() +
+scale_fill_manual(values = ColorKey)+
+ggtitle("Breast elevated gene signature")+
+stat_compare_means(comparisons = S_Breast$comparisons,
+label = "p.signif", method = "t.test",ref.group = ".all.")
+```
+```{r Breast-genes-Stouffer_1, eval=FALSE, fig.align='center', include=FALSE, out.width="80%"}
+ knitr::include_graphics("man/figures/Breast-genes-Stouffer-1.png")
+```
+
+ 
+## Copy Number Variation Analysis:
+inferCNV R package is used for analysing copy number variation for raw 
+Count/TPM data. Along with all analysis of inferCNV, unCTC::CNV_alterations
+calculate addition and deletion position in p and q arms in test/cancerous/
+diseased data as compared to reference/normal/healthy. To calculate p and q
+arm location from inferCNV events, we used GRCh37 cytoband information.  
+
+CNV_alterations require the following inputs:  
+
+* data_list: List of expression data matrices.  
+* data_id: List of expression data matrices name in the same order.  
+* path= path to save output files. 
+* min_Sample: filter out genes which are not expressedin at least 
+min_Sample cells, Default is 5.  
+* min_Gene: Filter out those cells which do not express at least 
+min_Gene genes, Default is 1500. 
+* GenePositionFile: Gene/chromosomal order file. This package includes
+    genecode hg19 gene order file. Either you can use this or download it
+    from outer sources.  
+* threads_no: Thread number for parallel processes, default is 8.  
+* MetaData: Optional, List of metadata of expression matrices. If given,
+    then columns of all metadata in the list must be the same.  
+* Groupby: Any column name from MetaData, which we want to use as an
+    annotation file. Only applicable if MetaData is given.  
+* Reference_name: Any cell type from the data_id list or any cell type
+    from the column assign to Groupby.  
+* obs.title: Title of test/observation matrix. Default is "Observations".  
+* ref.title: Title of reference matrix. Default is "References".  
+* out.Filename: Output filename-prefix. Default is "inferCNV".  
+
+### Load gene order file
+```{r echo=TRUE}
+gencode_v19_gene_pos =unCTC::gencode_v19_gene_pos
+```
+
+### inferCNV between clusters by taking cluster_1 as reference
+```{r CNV-Alterations, include=FALSE}
+CNV_Alterations = unCTC::CNV_alterations(
+                     data_list= dataList,
+                     data_id= dataId,
+                     min_Sample = 5,
+                     min_Gene = 1500,
+                     path= "/home/saritap/nextseq_infercnv/cust/infer_clust",
+                     GenePositionFile= gencode_v19_gene_pos,  
+                     threads_no=8, 
+                     MetaData = list(DDLK_Clusters$PathwayDDLK_clust),
+                     Groupby = "Clusters",
+                     Reference_name = "Cluster_1",
+                     obs.title ="Observations", 
+                     ref.title = "References",
+                     out.Filename = "inferCNV_Cluster" 
+                     )
+
+```
+
+### CNV States
+```{r echo=TRUE}
+print("HMM state (1 = 2 copies loss, 2 = 1 copy loss, 3 = neutral,4 = 1 copy gain, 5 = 2 copies gain, 6 = 3+ copies gain),")
+
+head(CNV_Alterations)
+
+```
+
+```{r inferCNV_p-q_arm-alterations, eval=FALSE, fig.align='center', include=FALSE, out.width="100%"}
+ knitr::include_graphics("man/figures/p_q_arm_clusters.png")
+```
+```{r inferCNV-heatmap-ref-WBC-cluster, eval=FALSE, fig.align='center', include=FALSE, out.width="100%"}
+
+  knitr::include_graphics("man/figures/infercnv_clusters.png")
+
+
+```
+
+### inferCNV by taking WBC cells as reference and CTCs as observation
+```{r CNV-Alterations_dataID, include=FALSE}
+CNV_Alterations_dataId = unCTC::CNV_alterations(
+                     data_list= dataList,
+                     data_id= dataId,
+                     min_Sample = 5,
+                     min_Gene = 1500,
+                     path= "/home/saritap/nextseq_infercnv/data/infer_data",
+                     GenePositionFile= gencode_v19_gene_pos,  
+                     threads_no=8, 
+                     MetaData = list(DDLK_Clusters$PathwayDDLK_clust),
+                     Groupby = "Data_id",
+                     Reference_name = c("Ding_et_al._WBC1_TPMData",
+                      "Ding_et_al._WBC2_TPMData"), # WBC data as reference
+                     obs.title ="Observations", 
+                     ref.title = "References",
+                     out.Filename = "inferCNV" 
+                     )
+
+```
+
+### CNV States
+```{r echo=TRUE}
+print("HMM state (1 = 2 copies loss, 2 = 1 copy loss, 3 = neutral,4 = 1 copy gain, 5 = 2 copies gain, 6 = 3+ copies gain),")
+
+head(CNV_Alterations_dataId)
+
+```
+```{r inferCNV_p-q_arm-alterations between DataId, eval=FALSE, fig.align='center', include=FALSE, out.width="100%"}
+ knitr::include_graphics("man/figures/p_q_arm_Dataid.png")
+```
+```{r inferCNV-heatmap-WBC-Ref between DataId, eval=FALSE, fig.align='center', include=FALSE, out.width="100%"}
+
+  knitr::include_graphics("man/figures/infercnv_DataId.png")
+
+
+```
+
+## Gene_Violin_plots 
+Give violin plot for a given Canonical marker expression.  
+
+Gene_Violin_plots require input:  
+* data_list: List of expression data matrices  
+* data_id: List of expression data matrices name in the same order.  
+* min_Sample: filter out genes which are not expressedin at least 
+min_Sample cells, Default is 5.  
+* min_Gene: Filter out those cells which do not express at least 
+min_Gene genes, Default is 1500. 
+* gene_symbol: Specific gene for which we want to see expression.  
+* MetaData:  Optional, list of metadata of expression matrices.
+    If given then columns of all metadata in the list must be identical.  
+* Groupby: Any column name from MetaData, which we want to use to see
+    differential expression of the gene. Default is "data_id".  
+    
+```{r Gene-Violin-Plot, echo=TRUE, message=FALSE}
+# Gene Violin plot
+PTPRC = Gene_Violin_plots(data_list =dataList,
+                  data_id = dataId,
+                  min_Sample = 5,
+                  min_Gene = 1500,
+                  gene_symbol = "PTPRC",
+                  DDLKCluster_data = DDLK_Clusters$PathwayDDLK_clust,
+                  Groupby = "Clusters")
+NKG7 = Gene_Violin_plots(data_list =dataList,
+                  data_id = dataId,
+                  min_Sample = 5,
+                  min_Gene = 1500,
+                  gene_symbol = "NKG7",
+                  DDLKCluster_data = DDLK_Clusters$PathwayDDLK_clust,
+                  Groupby = "Clusters")
+
+EPCAM = Gene_Violin_plots(data_list =dataList,
+                  data_id = dataId,
+                  min_Sample = 5,
+                  min_Gene = 1500,
+                  gene_symbol = "EPCAM",
+                  DDLKCluster_data = DDLK_Clusters$PathwayDDLK_clust,
+                  Groupby = "Clusters")
+KRT18 = Gene_Violin_plots(data_list =dataList,
+                  data_id = dataId,
+                  min_Sample = 5,
+                  min_Gene = 1500,
+                  gene_symbol = "KRT18",
+                  DDLKCluster_data = DDLK_Clusters$PathwayDDLK_clust,
+                  Groupby = "Clusters")
+```
+
+### Canonical marker expression
+```{r Canonical-markers-expression, echo=TRUE}
+library(cowplot)
+plot_grid(PTPRC,NKG7,EPCAM,KRT18)
+```
+```{r Canonical-markers-expression_1, eval=FALSE, fig.align='center', include=FALSE, out.width="100%"}
+ knitr::include_graphics("man/figures/Canonical-markers-expression-1.png")
+```
+
+

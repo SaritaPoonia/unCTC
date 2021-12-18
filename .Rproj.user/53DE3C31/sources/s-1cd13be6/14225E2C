@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1638325483170.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "14225E2C",
+    "lastKnownWriteTime" : 1638294729,
+    "last_content_update" : 1638294729,
+    "path" : "~/unCTC/Readme1.Rmd",
+    "project_path" : "Readme1.Rmd",
+    "properties" : {
+        "cursorPosition" : "499,8",
+        "scrollLine" : "494"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 21,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

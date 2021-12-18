@@ -1,0 +1,77 @@
+Package: unCTC
+Type: Package
+Title: Characterising single circulating tumor cell transcriptomes
+Version: 0.1.0
+Authors@R: c(person("Sarita", "Poonia",
+    email = "saritap@iiitd.ac.in", role = c("aut","cre")),
+    person("Debarka", "Sengupta",
+    email = "debarka@iiitd.ac.in", role = c("aut")))
+Description: Unbiased identification and characterization of single CTC
+    transcriptomes are aided by the unCTC process, which includes multiple
+    techniques. Clustering of scRNA-seq profiles is a crucial part of this 
+    process. We describe a robust method for grouping single-cell 
+    transcriptomes in a meta-space that spans pathways and computes 
+    enrichment scores based on gene expression readouts. The log-transformed 
+    TPM (Transcripts Per Million) matrix/count associated with CTC 
+    transcriptomes is transformed into a matrix comprising pathway 
+    enrichment scores obtained using an R package,  GSVA, for unsupervised 
+    clustering. Deep dictionary learning with k-means clustering 
+    cost (DDLK)  is applied to these pathway scores. The K-means clustering
+    cost is included in the deep dictionary learning (DDL) architecture 
+    by DDLK. With the use of Stouffer's Z-score, unCTC allows for the 
+    determination of a variety of canonical markers identifying 
+    malignant/epithelial/immune origins (Stouffer et al., 1949). 
+    In our opinion, gene-set-based techniques are effective in enhancing 
+    single-marker-based and inferred-CNV-based cell-group characterization.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 2.0)
+biocViews:
+    SingleCell,
+    Clustering,
+    CopyNumberVariation
+Suggests: 
+    caTools,
+    preprocessCore,
+    genefilter,
+    RColorBrewer,
+    grid,
+    pkgload,
+    tidyr,
+    biomaRt,
+    GenomicAlignments,
+    devtools,
+    rmarkdown,
+    RUnit,
+    BiocGenerics,
+    testthat (>= 3.0.0),
+    knitr
+Imports:
+    qusage,
+    viridis,
+    PCAtools,
+    magrittr,
+    limma,
+    GSVA,
+    umap,
+    ggplot2,
+    SingleCellExperiment,
+    Linnorm,
+    infercnv,
+    ggpubr,
+    reticulate,
+    GenomicRanges,
+    readtext,
+    S4Vectors,
+    cowplot,
+    edgeR,
+    D3GB,
+    SummarizedExperiment,
+    IRanges,
+    utils,
+    stats
+VignetteBuilder:
+    knitr
+RoxygenNote: 7.1.2
+Config/testthat/edition: 3

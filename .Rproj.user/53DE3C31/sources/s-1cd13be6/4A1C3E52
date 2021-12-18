@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1627296237151.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "4A1C3E52",
+    "lastKnownWriteTime" : 1632332156,
+    "last_content_update" : 1632332156951,
+    "path" : "~/unCTC/R/CNV_alterations.R",
+    "project_path" : "R/CNV_alterations.R",
+    "properties" : {
+        "cursorPosition" : "50,39",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
